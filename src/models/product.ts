@@ -1,4 +1,5 @@
 import pool from './db';
+import { handleDatabaseError } from '../utils/dbErrorHandler';
 
 export interface Product {
     id?: number;
@@ -25,31 +26,46 @@ export const ProductModel = {
     },
 
     async create(product: Product): Promise<Product> {
-        const { name, description, category_id, quantity, price } = product;
-        const query = `
-      INSERT INTO products (name, description, category_id, quantity, price)
-      VALUES ($1, $2, $3, $4, $5)
-      RETURNING *
-    `;
-        const result = await pool.query(query, [name, description, category_id, quantity, price]);
-        return result.rows[0];
+        try {
+            const { name, description, category_id, quantity, price } = product;
+            const query = `
+        INSERT INTO products (name, description, category_id, quantity, price)
+        VALUES ($1, $2, $3, $4, $5)
+        RETURNING *
+      `;
+            const result = await pool.query(query, [name, description, category_id, quantity, price]);
+            return result.rows[0];
+        } catch (error) {
+            handleDatabaseError(error);
+            throw error;
+        }
     },
 
     async update(id: number, product: Product): Promise<Product | null> {
-        const { name, description, category_id, quantity, price } = product;
-        const query = `
-      UPDATE products
-      SET name = $1, description = $2, category_id = $3, quantity = $4, price = $5, updated_at = NOW()
-      WHERE id = $6
-      RETURNING *
-    `;
-        const result = await pool.query(query, [name, description, category_id, quantity, price, id]);
-        return result.rows[0] || null;
+        try {
+            const { name, description, category_id, quantity, price } = product;
+            const query = `
+        UPDATE products
+        SET name = $1, description = $2, category_id = $3, quantity = $4, price = $5, updated_at = NOW()
+        WHERE id = $6
+        RETURNING *
+      `;
+            const result = await pool.query(query, [name, description, category_id, quantity, price, id]);
+            return result.rows[0] || null;
+        } catch (error) {
+            handleDatabaseError(error);
+            throw error;
+        }
     },
 
     async delete(id: number): Promise<Product | null> {
-        const query = 'DELETE FROM products WHERE id = $1 RETURNING *';
-        const result = await pool.query(query, [id]);
-        return result.rows[0] || null;
+        try {
+            const query = 'DELETE FROM products WHERE id = $1 RETURNING *';
+            const result = await pool.query(query, [id]);
+            return result.rows[0] || null;
+        } catch (error) {
+            handleDatabaseError(error);
+            throw error;
+        }
     },
 };
