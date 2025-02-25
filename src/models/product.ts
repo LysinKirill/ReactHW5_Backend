@@ -1,17 +1,16 @@
 import pool from './db';
-import { handleDatabaseError } from '../utils/dbErrorHandler';
+import {DatabaseError, handleDatabaseError} from '../utils/dbErrorHandler';
 
 export interface Product {
     id?: number;
     name: string;
     description: string;
-    category_id: number;
+    category: string;
     quantity: number;
     price: number;
     created_at?: Date;
     updated_at?: Date;
 }
-
 export const ProductModel = {
     async getAll(limit: number = 10, offset: number = 0): Promise<Product[]> {
         const query = 'SELECT * FROM products LIMIT $1 OFFSET $2';
@@ -27,12 +26,22 @@ export const ProductModel = {
 
     async create(product: Product): Promise<Product> {
         try {
-            const { name, description, category_id, quantity, price } = product;
+            const { name, description, category, quantity, price } = product;
+
+            const categoryQuery = 'SELECT id FROM categories WHERE name = $1';
+            const categoryResult = await pool.query(categoryQuery, [category]);
+
+            if (categoryResult.rows.length === 0) {
+                throw new DatabaseError('Category not found', 'CATEGORY_NOT_FOUND');
+            }
+
+            const category_id = categoryResult.rows[0].id;
+
             const query = `
-        INSERT INTO products (name, description, category_id, quantity, price)
-        VALUES ($1, $2, $3, $4, $5)
-        RETURNING *
-      `;
+                INSERT INTO products (name, description, category_id, quantity, price)
+                VALUES ($1, $2, $3, $4, $5)
+                RETURNING *
+            `;
             const result = await pool.query(query, [name, description, category_id, quantity, price]);
             return result.rows[0];
         } catch (error) {
@@ -41,15 +50,26 @@ export const ProductModel = {
         }
     },
 
+
     async update(id: number, product: Product): Promise<Product | null> {
         try {
-            const { name, description, category_id, quantity, price } = product;
+            const { name, description, category, quantity, price } = product;
+
+            const categoryQuery = 'SELECT id FROM categories WHERE name = $1';
+            const categoryResult = await pool.query(categoryQuery, [category]);
+
+            if (categoryResult.rows.length === 0) {
+                throw new DatabaseError('Category not found', 'CATEGORY_NOT_FOUND');
+            }
+
+            const category_id = categoryResult.rows[0].id;
+
             const query = `
-        UPDATE products
-        SET name = $1, description = $2, category_id = $3, quantity = $4, price = $5, updated_at = NOW()
-        WHERE id = $6
-        RETURNING *
-      `;
+                UPDATE products
+                SET name = $1, description = $2, category_id = $3, quantity = $4, price = $5, updated_at = NOW()
+                WHERE id = $6
+                RETURNING *
+            `;
             const result = await pool.query(query, [name, description, category_id, quantity, price, id]);
             return result.rows[0] || null;
         } catch (error) {
