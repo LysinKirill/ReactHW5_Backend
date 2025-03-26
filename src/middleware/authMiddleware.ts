@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
-import { verifyAccessToken } from '../utils/jwt';
+import {getUserFromRequest, verifyAccessToken} from '../utils/jwt';
 
 export const authenticateJWT = (req: Request, res: Response, next: NextFunction) => {
     const authHeader = req.headers.authorization;
@@ -22,11 +22,16 @@ export const authenticateJWT = (req: Request, res: Response, next: NextFunction)
 
 export const checkGroupPermission = (requiredGroups: string[]) => {
     return (req: Request, res: Response, next: NextFunction) => {
-        if (requiredGroups.includes('admin') && req.user.group === 'admin') {
+        const user = getUserFromRequest(req);
+        if (!user) {
+            res.status(403).json({ error: 'Not permissions found for user' });
+            return;
+        }
+        if (requiredGroups.includes('admin') && user.group === 'admin') {
             return next();
         }
 
-        if (requiredGroups.includes(req.user.group)) {
+        if (requiredGroups.includes(user.group)) {
             return next();
         }
 

@@ -12,15 +12,34 @@ import {
     updateCategoryValidator,
     validate,
 } from '../validators/categoryValidator';
-import {authenticateJWT} from "../middleware/authMiddleware";
+import {authenticateJWT, checkGroupPermission} from "../middleware/authMiddleware";
 
 const router = express.Router();
 router.use(authenticateJWT);
 
 router.get('/', getAllCategories);
 router.get('/:id', getCategoryById);
-router.post('/', createCategoryValidator, validate, createCategory);
-router.put('/:id', updateCategoryValidator, validate, updateCategory);
-router.delete('/:id', deleteCategory);
+router.post(
+    '/',
+    authenticateJWT,
+    checkGroupPermission(['admin']),
+    createCategoryValidator,
+    validate,
+    createCategory
+);
+router.put(
+    '/:id',
+    authenticateJWT,
+    checkGroupPermission(['admin']),
+    updateCategoryValidator,
+    validate,
+    updateCategory
+);
+router.delete(
+    '/:id',
+    authenticateJWT,
+    checkGroupPermission(['admin']),
+    deleteCategory
+);
 
 export default router;

@@ -11,6 +11,8 @@ export const getAllCategories = async (req: Request, res: Response) => {
     }
 };
 
+
+
 export const getCategoryById = async (req: Request, res: Response) => {
     try {
         const category = await CategoryModel.getById(parseInt(req.params.id));
@@ -23,7 +25,12 @@ export const getCategoryById = async (req: Request, res: Response) => {
 
 export const createCategory = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const category = await CategoryModel.create(req.body);
+        const categoryData = {
+            ...req.body,
+            allowed_groups: req.body.allowed_groups || ['admin']
+        };
+
+        const category = await CategoryModel.create(categoryData);
         res.status(201).json(category);
     } catch (error) {
         next(error);

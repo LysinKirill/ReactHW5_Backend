@@ -1,5 +1,6 @@
 import jwt from 'jsonwebtoken';
 import { config } from 'dotenv';
+import express from "express";
 
 config();
 
@@ -27,9 +28,24 @@ export const generateRefreshToken = (user: UserPayload) => {
     });
 };
 
-export const verifyAccessToken = (token: string) => {
+export const getUserFromToken = (token: string) => {
     return jwt.verify(token, ACCESS_TOKEN_SECRET) as UserPayload;
 };
+
+export const getUserFromRequest = (request: express.Request) => {
+    const authHeader = request.headers.authorization;
+
+    if (authHeader) {
+        const token = authHeader.split(' ')[1];
+        return getUserFromToken(token);
+    }
+    return null;
+}
+
+export const verifyAccessToken = (token: string) => {
+    getUserFromToken(token)
+};
+
 
 export const verifyRefreshToken = (token: string) => {
     return jwt.verify(token, REFRESH_TOKEN_SECRET) as { id: number };

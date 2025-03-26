@@ -13,7 +13,21 @@ export interface Product {
 }
 export const ProductModel = {
     async getAll(limit: number = 10, offset: number = 0): Promise<Product[]> {
-        const query = 'SELECT * FROM products LIMIT $1 OFFSET $2';
+        const query = `
+    SELECT 
+        p.id as id,
+        p."name" as name,
+        p.description as description,
+        p.quantity as quantity,
+        p.price as price,
+        p.created_at as createdAt,
+        p.updated_at as updatedAt,
+        c."name" as category
+    FROM products p
+    JOIN categories c
+    on p.category_id = c.id
+    LIMIT $1 OFFSET $2;
+`;
         const result = await pool.query(query, [limit, offset]);
         return result.rows;
     },
