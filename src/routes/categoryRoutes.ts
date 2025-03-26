@@ -12,8 +12,10 @@ import {
     updateCategoryValidator,
     validate,
 } from '../validators/categoryValidator';
+import {authenticateJWT} from "../middleware/authMiddleware";
 
 const router = express.Router();
+router.use(authenticateJWT);
 
 router.get('/', getAllCategories);
 router.get('/:id', getCategoryById);

@@ -6,7 +6,7 @@ import {
     updateProduct,
     deleteProduct,
 } from '../controllers/productController';
-
+import { authenticateJWT } from '../middleware/authMiddleware';
 import {
     createProductValidator,
     updateProductValidator,
@@ -14,6 +14,7 @@ import {
 } from '../validators/productValidator';
 
 const router = express.Router();
+router.use(authenticateJWT);
 
 router.get('/', getAllProducts);
 router.get('/:id', getProductById);
